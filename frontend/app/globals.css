@@ -1,0 +1,380 @@
+:root {
+  --bg: #f4efe6;
+  --ink: #1c211b;
+  --muted: #62685f;
+  --panel: #fffaf0;
+  --line: #ded3bf;
+  --accent: #bc4b2f;
+  --accent-dark: #7a2819;
+  --green: #176f4d;
+  --shadow: 0 22px 70px rgba(50, 38, 20, 0.14);
+  --workspace-height: 720px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(188, 75, 47, 0.18), transparent 34rem),
+    linear-gradient(135deg, #f4efe6 0%, #efe2c9 52%, #e5d3b2 100%);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+main {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.hero {
+  display: grid;
+  min-height: 100px;
+  margin-bottom: 24px;
+  padding: 28px;
+  border: 1px solid rgba(122, 40, 25, 0.18);
+  border-radius: 32px;
+  background:
+    linear-gradient(110deg, rgba(255, 250, 240, 0.94), rgba(255, 250, 240, 0.68)),
+    repeating-linear-gradient(90deg, rgba(122, 40, 25, 0.05) 0 1px, transparent 1px 28px);
+  box-shadow: var(--shadow);
+}
+
+h1 {
+  max-width: 840px;
+  margin: 0;
+  font-size: clamp(2.6rem, 7vw, 5.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+}
+
+.hero p {
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.left-column {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 20px;
+  height: var(--workspace-height);
+  min-height: 0;
+}
+
+.panel {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 250, 240, 0.9);
+  box-shadow: 0 12px 40px rgba(50, 38, 20, 0.08);
+}
+
+.eyebrow {
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+select,
+input {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--ink);
+  background: #fffdf8;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #fffaf0;
+  background: var(--ink);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.portfolio-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  text-align: left;
+  border-radius: 18px;
+  color: var(--ink);
+  background: #eee3cf;
+}
+
+.portfolio-card.active {
+  color: #fffaf0;
+  background: var(--accent-dark);
+}
+
+.portfolio-card span,
+.portfolio-card small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portfolio-card strong {
+  font-size: 1.2rem;
+}
+
+.context-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.context-grid div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.context-grid span {
+  color: var(--muted);
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.examples button {
+  padding: 8px 12px;
+  color: var(--accent-dark);
+  background: #ead6c0;
+}
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: var(--workspace-height);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.messages {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+  max-height: 100%;
+  margin: 18px 0;
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+.message {
+  width: fit-content;
+  max-width: 82%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  white-space: pre-wrap;
+}
+
+.message p {
+  margin: 0 0 8px;
+}
+
+.message p:last-child {
+  margin-bottom: 0;
+}
+
+.message.agent {
+  color: var(--ink);
+  background: #eee3cf;
+}
+
+.loading-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: min(100%, 360px);
+}
+
+.loading-card strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.loading-card p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.thinking-loader {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border: 3px solid rgba(122, 40, 25, 0.18);
+  border-top-color: var(--accent-dark);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.message.user {
+  justify-self: end;
+  color: #fffaf0;
+  background: var(--accent);
+}
+
+form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+form button {
+  display: grid;
+  place-items: center;
+  min-width: 96px;
+  margin-top: 12px;
+  background: var(--accent-dark);
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 250, 240, 0.45);
+  border-top-color: #fffaf0;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.evidence-panel {
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.score-row.compact {
+  padding: 8px 0;
+  font-size: 0.92rem;
+}
+
+.score-row strong {
+  color: var(--green);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.chip {
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: var(--accent-dark);
+  background: #ead6c0;
+  font-size: 0.8rem;
+}
+
+.news-list {
+  display: grid;
+  gap: 12px;
+}
+
+.news-list article {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fffdf8;
+}
+
+.news-list span,
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.warning,
+.error {
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: #7a2819;
+  background: #f5d7ca;
+}
+
+@media (max-width: 900px) {
+  .layout,
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding: 24px;
+  }
+
+  .left-column,
+  .chat-panel {
+    height: auto;
+    min-height: auto;
+  }
+
+  .evidence-panel {
+    max-height: 520px;
+  }
+
+  form {
+    grid-template-columns: 1fr;
+  }
+
+  form button {
+    min-height: 48px;
+  }
+}
