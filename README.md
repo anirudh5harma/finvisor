@@ -1,5 +1,7 @@
 # Autonomous Financial Advisor Chat Agent
 
+<img width="1219" height="703" alt="Screenshot 2026-05-10 at 1 18 43 AM" src="https://github.com/user-attachments/assets/45a1b9ee-aef9-44ba-bdc6-82f82233a5eb" />
+
 ## Run The Backend
 
 ```bash
