@@ -4,8 +4,11 @@ from dataclasses import dataclass, field
 import logging
 from typing import Any
 
-from ..config import Settings, get_settings
-from .intent_router import ChatIntent
+from ..core.config import Settings, get_settings
+from ..core.logging import log_event
+from ..services.intent_router import ChatIntent
+from .openai_provider import OpenAIAnswerProvider
+from .prompts import build_answer_prompt
 
 
 logger = logging.getLogger("financial_advisor.llm")
@@ -77,98 +80,36 @@ class AnswerGenerator:
         query_context: dict[str, Any],
     ) -> GeneratedAnswer | None:
         try:
-            from openai import OpenAI
-
-            client = OpenAI(api_key=self.settings.openai_api_key, max_retries=self.settings.openai_max_retries)
-            prompt = self._build_prompt(question, intent, portfolio_analysis, market_summary, reasoning_chains, query_context)
-            response = client.chat.completions.create(
-                model=self.settings.openai_model,
-                temperature=0.2,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "Answer Indian market portfolio questions using causal reasoning. "
-                            "Link macro/news events to sector moves to stock or mutual fund impact. "
-                            "Use only the provided evidence and computed analytics. Do not fabricate live prices, "
-                            "do not give direct buy/sell instructions. Keep responses compact."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt,
-                    },
-                ],
-                max_tokens=self.settings.openai_max_output_tokens,
-                timeout=self.settings.openai_timeout_seconds,
+            prompt = build_answer_prompt(
+                question,
+                intent,
+                portfolio_analysis,
+                market_summary,
+                reasoning_chains,
+                query_context,
             )
-            usage = response.usage
-            answer_text = self._ensure_disclaimer(response.choices[0].message.content or "")
+            provider_answer = OpenAIAnswerProvider(self.settings).generate(prompt)
+            answer_text = self._ensure_disclaimer(provider_answer.text)
             return GeneratedAnswer(
                 text=answer_text,
                 provider="openai",
                 model=self.settings.openai_model,
-                token_usage={
-                    "prompt_tokens": getattr(usage, "prompt_tokens", 0) if usage else 0,
-                    "completion_tokens": getattr(usage, "completion_tokens", 0) if usage else 0,
-                    "total_tokens": getattr(usage, "total_tokens", 0) if usage else 0,
-                },
+                token_usage=provider_answer.token_usage,
             )
         except Exception as exc:
-            logger.warning("OpenAI answer generation failed; using deterministic fallback: %s", exc)
+            log_event(
+                logger,
+                "openai_generation_failed",
+                level=logging.WARNING,
+                error_type=type(exc).__name__,
+                fallback_provider="deterministic",
+            )
             return None
 
     def _ensure_disclaimer(self, answer: str) -> str:
         if "not financial advice" in answer.lower():
             return answer
         return f"{answer.rstrip()}\n\nNot financial advice."
-
-    def _build_prompt(
-        self,
-        question: str,
-        intent: ChatIntent,
-        portfolio_analysis: dict[str, Any] | None,
-        market_summary: dict[str, Any],
-        reasoning_chains: list[dict[str, Any]],
-        query_context: dict[str, Any],
-    ) -> str:
-        compact_portfolio = None
-        if portfolio_analysis:
-            compact_portfolio = {
-                "portfolio_id": portfolio_analysis.get("portfolio_id"),
-                "risk_profile": portfolio_analysis.get("risk_profile"),
-                "day_change_percent": portfolio_analysis.get("day_change_percent"),
-                "day_change_absolute": portfolio_analysis.get("day_change_absolute"),
-                "sector_allocation": portfolio_analysis.get("sector_allocation"),
-                "asset_type_allocation": portfolio_analysis.get("asset_type_allocation"),
-                "risk_metrics": portfolio_analysis.get("risk_metrics"),
-                "top_detractors": portfolio_analysis.get("top_detractors", [])[:3],
-                "top_gainers": portfolio_analysis.get("top_gainers", [])[:3],
-            }
-
-        compact_market = {
-            "sentiment": market_summary.get("sentiment"),
-            "average_index_change_percent": market_summary.get("average_index_change_percent"),
-            "market_breadth": market_summary.get("market_breadth", {}).get("nifty50"),
-            "fii_dii_data": market_summary.get("fii_dii_data"),
-        }
-        compact_query_context = {
-            key: value
-            for key, value in query_context.items()
-            if key in {"symbol", "stock", "scheme_code", "mutual_fund"}
-        }
-
-        return (
-            f"Question: {question}\n"
-            f"Intent: {intent.value}\n"
-            f"Portfolio summary: {compact_portfolio}\n"
-            f"Market summary: {compact_market}\n"
-            f"Query context: {compact_query_context}\n"
-            f"Top reasoning chains: {reasoning_chains[:5]}\n"
-            "Answer using only this evidence in at most 4 short bullets and 120 words. "
-            "Prioritize only the highest-impact causal links, include key numbers, mention ambiguity only if present, "
-            "avoid buy/sell instructions, and end with 'Not financial advice.'"
-        )
 
     def _template_answer(
         self,

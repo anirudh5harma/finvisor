@@ -1,5 +1,5 @@
-from backend.app.chat_agent import ChatAgent
-from backend.app.data_loader import DataLoader
+from backend.app.agents.financial_advisor import ChatAgent
+from backend.app.data.loader import DataLoader
 from backend.app.services.market_intelligence import MarketIntelligence
 from backend.app.services.portfolio_analytics import PortfolioAnalytics
 

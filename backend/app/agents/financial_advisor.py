@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from .config import Settings, get_settings
-from .data_loader import DataLoader
-from .services.evaluator import ResponseEvaluator
-from .services.intent_router import ChatIntent, IntentRouter
-from .services.llm import AnswerGenerator
-from .services.market_intelligence import MarketIntelligence
-from .services.portfolio_analytics import PortfolioAnalytics
-from .services.reasoning_engine import ReasoningEngine
-from .schemas import ChatResponse
+from ..core.config import Settings, get_settings
+from ..data.loader import DataLoader
+from ..llm.generator import AnswerGenerator
+from ..schemas import ChatResponse
+from ..services.evaluator import ResponseEvaluator
+from ..services.intent_router import ChatIntent, IntentRouter
+from ..services.market_intelligence import MarketIntelligence
+from ..services.portfolio_analytics import PortfolioAnalytics
+from ..services.reasoning_engine import ReasoningEngine
 
 
 class ChatAgent:

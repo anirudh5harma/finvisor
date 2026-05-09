@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import threading
 import time
@@ -8,11 +7,11 @@ from contextlib import contextmanager
 from functools import lru_cache
 from typing import Any, Iterator
 
-from .config import get_settings
+from ..core.config import get_settings
+from ..core.logging import log_event
 
 
 settings = get_settings()
-logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("financial_advisor")
 _trace_write_lock = threading.Lock()
 _last_trace_id: str | None = None
@@ -81,7 +80,7 @@ class TraceContext:
         }
         if self.trace_id:
             log_payload["langfuse_trace_id"] = self.trace_id
-        logger.info(json.dumps({"event": self.name, **log_payload}, default=str))
+        log_event(logger, self.name, **log_payload)
 
     def close(self) -> None:
         latency_ms = round((time.perf_counter() - self.start) * 1000, 2)

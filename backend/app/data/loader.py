@@ -10,7 +10,7 @@ class DataLoader:
     """Loads the supplied financial datasets from disk."""
 
     def __init__(self, data_dir: Path | str | None = None) -> None:
-        self.data_dir = Path(data_dir) if data_dir else Path(__file__).resolve().parents[2]
+        self.data_dir = Path(data_dir) if data_dir else Path(__file__).resolve().parents[3]
 
     def _load_json(self, filename: str) -> dict[str, Any]:
         path = self.data_dir / filename

@@ -1,3 +1,5 @@
+import logging
+
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
@@ -40,3 +42,15 @@ def test_observability_status_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert {"langfuse_enabled", "langfuse_configured", "client_initialized"}.issubset(data)
+
+
+def test_request_logging_is_structured(caplog):
+    with caplog.at_level(logging.INFO, logger="financial_advisor.api"):
+        response = client.get("/api/health")
+
+    assert response.status_code == 200
+    record = next(item for item in caplog.records if getattr(item, "event", None) == "http_request")
+    assert record.method == "GET"
+    assert record.path == "/api/health"
+    assert record.status_code == 200
+    assert isinstance(record.duration_ms, float)

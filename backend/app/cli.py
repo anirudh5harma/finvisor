@@ -3,11 +3,14 @@ from __future__ import annotations
 import argparse
 import json
 
-from .chat_agent import ChatAgent
-from .dependencies import get_loader
+from .agents.financial_advisor import ChatAgent
+from .api.dependencies import get_loader
+from .core.config import get_settings
+from .core.logging import configure_logging
 
 
 def main() -> None:
+    configure_logging(get_settings().log_level)
     parser = argparse.ArgumentParser(description="Run the financial advisor chat agent.")
     parser.add_argument("--question", required=True)
     parser.add_argument("--portfolio", dest="portfolio_id")

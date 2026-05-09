@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..config import Settings, get_settings
+from ..core.config import Settings, get_settings
 
 
 class PortfolioAnalytics:

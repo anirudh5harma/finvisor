@@ -39,5 +39,8 @@ LANGFUSE_SECRET_KEY=...
 LANGFUSE_BASE_URL=
 LANGFUSE_ENABLED=true
 LANGFUSE_FLUSH_ON_REQUEST=true
+LOG_LEVEL=INFO
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
+
+Backend logs are emitted as structured JSON to stdout.
