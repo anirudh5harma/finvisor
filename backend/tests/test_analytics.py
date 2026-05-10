@@ -81,3 +81,14 @@ def test_chat_agent_handles_general_finance_question_without_symbol():
 
     assert response.response_metadata["intent"] == "general_finance"
     assert "pools money" in response.answer
+
+
+def test_chat_agent_general_finance_definition_does_not_include_market_insights():
+    response = ChatAgent(DataLoader()).answer("What is finance?", "PORTFOLIO_002")
+
+    assert response.response_metadata["intent"] == "general_finance"
+    assert "management of money" in response.answer
+    assert response.reasoning_chains == []
+    assert response.evidence["news_ids"] == []
+    assert "market backdrop" not in response.answer.lower()
+    assert "current driver" not in response.answer.lower()

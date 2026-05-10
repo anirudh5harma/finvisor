@@ -8,7 +8,7 @@ from ..core.config import Settings, get_settings
 from ..core.logging import log_event
 from ..services.intent_router import ChatIntent
 from .openai_provider import OpenAIAnswerProvider
-from .prompts import build_answer_prompt
+from .prompts import GENERAL_FINANCE_SYSTEM_PROMPT, SYSTEM_PROMPT, build_answer_prompt
 
 
 logger = logging.getLogger("financial_advisor.llm")
@@ -88,7 +88,11 @@ class AnswerGenerator:
                 reasoning_chains,
                 query_context,
             )
-            provider_answer = OpenAIAnswerProvider(self.settings).generate(prompt)
+            system_prompt = GENERAL_FINANCE_SYSTEM_PROMPT if intent == ChatIntent.GENERAL_FINANCE else SYSTEM_PROMPT
+            provider_answer = OpenAIAnswerProvider(self.settings).generate(
+                prompt,
+                system_prompt=system_prompt,
+            )
             answer_text = self._ensure_disclaimer(provider_answer.text)
             return GeneratedAnswer(
                 text=answer_text,
@@ -126,7 +130,7 @@ class AnswerGenerator:
         if intent == ChatIntent.MUTUAL_FUND_ANALYSIS:
             return self._fund_answer(query_context)
         if intent == ChatIntent.GENERAL_FINANCE:
-            return self._general_finance_answer(question, market_summary, reasoning_chains)
+            return self._general_finance_answer(question)
         if intent == ChatIntent.MARKET_SUMMARY:
             return self._market_answer(market_summary, reasoning_chains)
         if intent == ChatIntent.RISK_ANALYSIS and portfolio_analysis:
@@ -228,11 +232,14 @@ class AnswerGenerator:
     def _general_finance_answer(
         self,
         question: str,
-        market_summary: dict[str, Any],
-        reasoning_chains: list[dict[str, Any]],
     ) -> str:
         normalized = question.lower()
-        if "mutual fund" in normalized:
+        if "finance" in normalized:
+            lines = [
+                "Finance is the management of money, including how people, companies, and governments earn, save, invest, borrow, budget, and manage risk.",
+                "Common areas include personal finance, corporate finance, investing, banking, insurance, taxation, and financial markets.",
+            ]
+        elif "mutual fund" in normalized:
             lines = [
                 "A mutual fund pools money from investors and invests it across securities such as stocks, bonds, or arbitrage positions.",
                 "For this project, mutual fund answers use NAV movement, risk rating, returns, expense ratio, top holdings, and sector allocation from the supplied data.",
@@ -249,12 +256,9 @@ class AnswerGenerator:
             ]
         else:
             lines = [
-                "I can answer portfolio, stock, mutual fund, and market questions using the supplied dataset.",
-                f"Current market backdrop in the data is {market_summary.get('sentiment', 'UNKNOWN').lower()}.",
+                "Finance covers how money is planned, raised, allocated, invested, and protected against risk.",
+                "Ask about a specific concept, portfolio, stock, mutual fund, or market topic if you want a more targeted answer.",
             ]
-        if reasoning_chains:
-            lines.append("Most relevant current driver:")
-            lines.append(f"- {reasoning_chains[0].get('headline')}")
         lines.append("This is an informational analysis based on the supplied data, not financial advice.")
         return "\n".join(lines)
 

@@ -16,7 +16,7 @@ class OpenAIAnswerProvider:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-    def generate(self, prompt: str) -> ProviderAnswer:
+    def generate(self, prompt: str, system_prompt: str = SYSTEM_PROMPT) -> ProviderAnswer:
         from openai import OpenAI
 
         client = OpenAI(api_key=self.settings.openai_api_key, max_retries=self.settings.openai_max_retries)
@@ -24,7 +24,7 @@ class OpenAIAnswerProvider:
             model=self.settings.openai_model,
             temperature=0.2,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
             ],
             max_tokens=self.settings.openai_max_output_tokens,

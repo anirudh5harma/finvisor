@@ -12,6 +12,12 @@ SYSTEM_PROMPT = (
     "do not give direct buy/sell instructions. Keep responses compact."
 )
 
+GENERAL_FINANCE_SYSTEM_PROMPT = (
+    "Answer general finance education questions directly and concisely. "
+    "Do not add market commentary, portfolio analysis, news drivers, or current-data claims "
+    "unless the user explicitly asks for them. Do not give direct buy/sell instructions."
+)
+
 
 def build_answer_prompt(
     question: str,
@@ -35,26 +41,37 @@ def build_answer_prompt(
             "top_gainers": portfolio_analysis.get("top_gainers", [])[:3],
         }
 
-    compact_market = {
-        "sentiment": market_summary.get("sentiment"),
-        "average_index_change_percent": market_summary.get("average_index_change_percent"),
-        "market_breadth": market_summary.get("market_breadth", {}).get("nifty50"),
-        "fii_dii_data": market_summary.get("fii_dii_data"),
-    }
+    compact_market = None
+    if intent != ChatIntent.GENERAL_FINANCE:
+        compact_market = {
+            "sentiment": market_summary.get("sentiment"),
+            "average_index_change_percent": market_summary.get("average_index_change_percent"),
+            "market_breadth": market_summary.get("market_breadth", {}).get("nifty50"),
+            "fii_dii_data": market_summary.get("fii_dii_data"),
+        }
     compact_query_context = {
         key: value
         for key, value in query_context.items()
         if key in {"symbol", "stock", "scheme_code", "mutual_fund"}
     }
 
-    return (
+    base_prompt = (
         f"Question: {question}\n"
         f"Intent: {intent.value}\n"
         f"Portfolio summary: {compact_portfolio}\n"
         f"Market summary: {compact_market}\n"
         f"Query context: {compact_query_context}\n"
         f"Top reasoning chains: {reasoning_chains[:5]}\n"
-        "Answer using only this evidence in at most 4 short bullets and 120 words. "
+    )
+    if intent == ChatIntent.GENERAL_FINANCE:
+        return (
+            base_prompt
+            + "Answer as a concise educational finance explanation. Do not add market commentary, current drivers, "
+            "portfolio impact, or news unless the question explicitly asks for them. End with 'Not financial advice.'"
+        )
+    return (
+        base_prompt
+        + "Answer using only this evidence in at most 4 short bullets and 120 words. "
         "Prioritize only the highest-impact causal links, include key numbers, mention ambiguity only if present, "
         "avoid buy/sell instructions, and end with 'Not financial advice.'"
     )

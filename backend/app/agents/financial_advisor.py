@@ -54,7 +54,7 @@ class ChatAgent:
             symbols = set()
             sectors = set()
 
-        market_summary = self.market.market_summary()
+        market_summary = {} if intent == ChatIntent.GENERAL_FINANCE else self.market.market_summary()
         sector_trends = self.market.sector_trends()
         if intent == ChatIntent.STOCK_ANALYSIS:
             stock = self.loader.get_stock(stock_symbol or "")
@@ -81,6 +81,9 @@ class ChatAgent:
             query_context = {"question": message, "scheme_code": fund_code, "mutual_fund": fund, "news": news_items}
         elif intent == ChatIntent.MARKET_SUMMARY:
             news_items = self.market.market_drivers(limit=self.settings.max_relevant_news)
+        elif intent == ChatIntent.GENERAL_FINANCE:
+            news_items = []
+            query_context = {"question": message}
         else:
             news_items = self.market.relevant_news(
                 symbols=symbols,
@@ -114,10 +117,11 @@ class ChatAgent:
         else:
             evidence = self._evidence(reasoning, news_items)
         confidence = self._confidence(reasoning)
+        generation_portfolio_analysis = None if intent == ChatIntent.GENERAL_FINANCE else portfolio_analysis
         generated = self.generator.generate(
             message,
             intent,
-            portfolio_analysis,
+            generation_portfolio_analysis,
             market_summary,
             reasoning,
             evidence,
