@@ -8,7 +8,7 @@ from ..core.config import Settings, get_settings
 from ..core.logging import log_event
 from ..services.intent_router import ChatIntent
 from .openai_provider import OpenAIAnswerProvider
-from .prompts import GENERAL_FINANCE_SYSTEM_PROMPT, SYSTEM_PROMPT, build_answer_prompt
+from .prompts import GENERAL_FINANCE_SYSTEM_PROMPT, SYSTEM_PROMPT, build_answer_prompt, build_general_finance_prompt
 
 
 logger = logging.getLogger("financial_advisor.llm")
@@ -38,6 +38,29 @@ class AnswerGenerator:
         evidence: dict[str, Any],
         query_context: dict[str, Any] | None = None,
     ) -> GeneratedAnswer:
+        if intent == ChatIntent.GENERAL_FINANCE:
+            should_use_openai = self.settings.openai_enabled is not False and bool(self.settings.openai_api_key)
+            if should_use_openai:
+                llm_answer = self._try_general_finance_openai(question)
+                if llm_answer:
+                    return llm_answer
+            text = self._template_answer(
+                question,
+                intent,
+                portfolio_analysis,
+                market_summary,
+                reasoning_chains,
+                evidence,
+                query_context or {},
+            )
+            return GeneratedAnswer(
+                text=text,
+                provider="deterministic",
+                model="rule-template",
+                token_usage=self._estimate_token_usage(question, text),
+                fallback_reason="openai_key_missing_or_general_finance_call_failed",
+            )
+
         should_use_openai = self.settings.openai_enabled is not False and bool(self.settings.openai_api_key)
         if should_use_openai:
             llm_answer = self._try_openai(
@@ -104,6 +127,30 @@ class AnswerGenerator:
             log_event(
                 logger,
                 "openai_generation_failed",
+                level=logging.WARNING,
+                error_type=type(exc).__name__,
+                fallback_provider="deterministic",
+            )
+            return None
+
+    def _try_general_finance_openai(self, question: str) -> GeneratedAnswer | None:
+        try:
+            prompt = build_general_finance_prompt(question)
+            provider_answer = OpenAIAnswerProvider(self.settings).generate(
+                prompt,
+                system_prompt=GENERAL_FINANCE_SYSTEM_PROMPT,
+            )
+            answer_text = self._ensure_disclaimer(provider_answer.text)
+            return GeneratedAnswer(
+                text=answer_text,
+                provider="openai",
+                model=self.settings.openai_model,
+                token_usage=provider_answer.token_usage,
+            )
+        except Exception as exc:
+            log_event(
+                logger,
+                "openai_general_finance_generation_failed",
                 level=logging.WARNING,
                 error_type=type(exc).__name__,
                 fallback_provider="deterministic",

@@ -75,3 +75,14 @@ def build_answer_prompt(
         "Prioritize only the highest-impact causal links, include key numbers, mention ambiguity only if present, "
         "avoid buy/sell instructions, and end with 'Not financial advice.'"
     )
+
+
+def build_general_finance_prompt(question: str) -> str:
+    return (
+        f"Question: {question}\n"
+        "Answer this as a general finance, investing, stock-market, or mutual-fund education question. "
+        "Use broadly accepted financial concepts only. Do not mention today's market, current news, portfolio impact, "
+        "specific dataset values, or live prices. If the question asks for personalized advice, explain the concept "
+        "and suggest factors to consider instead of giving a buy/sell recommendation. Keep it under 160 words and "
+        "end with 'Not financial advice.'"
+    )

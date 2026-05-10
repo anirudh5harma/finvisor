@@ -84,11 +84,27 @@ def test_chat_agent_handles_general_finance_question_without_symbol():
 
 
 def test_chat_agent_general_finance_definition_does_not_include_market_insights():
-    response = ChatAgent(DataLoader()).answer("What is finance?", "PORTFOLIO_002")
+    response = ChatAgent(DataLoader()).answer("What is finance in general?", "PORTFOLIO_002")
 
     assert response.response_metadata["intent"] == "general_finance"
+    assert response.response_metadata["provider"] == "deterministic"
     assert "management of money" in response.answer
     assert response.reasoning_chains == []
     assert response.evidence["news_ids"] == []
     assert "market backdrop" not in response.answer.lower()
     assert "current driver" not in response.answer.lower()
+
+
+def test_educational_market_question_is_not_dataset_market_summary():
+    response = ChatAgent(DataLoader()).answer("What is the investment market?")
+
+    assert response.response_metadata["intent"] == "general_finance"
+    assert response.reasoning_chains == []
+    assert response.evidence["news_ids"] == []
+
+
+def test_current_market_question_still_uses_dataset_summary():
+    response = ChatAgent(DataLoader()).answer("Explain today's market sentiment.")
+
+    assert response.response_metadata["intent"] == "market_summary"
+    assert response.evidence["news_ids"]

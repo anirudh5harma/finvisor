@@ -17,6 +17,42 @@ class ChatIntent(StrEnum):
 class IntentRouter:
     def route(self, message: str) -> ChatIntent:
         normalized = message.lower()
+        educational_query = normalized.startswith(
+            (
+                "what is",
+                "what are",
+                "define",
+                "explain",
+                "how does",
+                "how do",
+                "meaning of",
+                "difference between",
+                "compare",
+            )
+        )
+        current_data_query = any(
+            term in normalized
+            for term in (
+                "today",
+                "current",
+                "latest",
+                "live",
+                "now",
+                "news",
+                "sentiment",
+                "nifty",
+                "sensex",
+                "indices",
+                "index",
+                "portfolio",
+                "holding",
+                "my portfolio",
+                "my holding",
+            )
+        )
+
+        if educational_query and not current_data_query:
+            return ChatIntent.GENERAL_FINANCE
 
         if any(term in normalized for term in ("mutual fund", "fund", "scheme", "nav", "expense ratio")):
             return ChatIntent.MUTUAL_FUND_ANALYSIS
